@@ -9,9 +9,20 @@ exports.createTask = async (req, res) => {
   }
 };
 
-exports.getTasks = async (_req, res) => {
-  const tasks = await service.getAllTasks();
+exports.getTasks = async (req, res) => {
+  const tasks = await service.getAllTasks(req.query);
   res.status(200).json(tasks);
+};
+
+exports.getTasksByPriority = async (req, res) => {
+  const { level } = req.params;
+
+  if (!["low", "medium", "high"].includes(level)) {
+    return res.sendStatus(400);
+  }
+
+  const tasks = await service.getTasksByPriority(level);
+  res.json(tasks);
 };
 
 exports.getTask = async (req, res) => {

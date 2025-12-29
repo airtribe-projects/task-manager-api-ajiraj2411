@@ -1,37 +1,57 @@
 const Task = require("../models/task.model");
-
-const isValid = (task) =>
-  typeof task.title === "string" &&
-  typeof task.description === "string" &&
-  typeof task.completed === "boolean";
+const validateTask = require("../utils/validateTask");
 
 const getNextId = async () => {
   const last = await Task.findOne().sort({ id: -1 });
   return last ? last.id + 1 : 1;
 };
 
-exports.createTask = async (task) => {
-  if (!isValid(task)) throw new Error("INVALID");
+exports.createTask = async (data) => {
+  if (!validateTask(data)) throw new Error("INVALID_INPUT");
+
   const id = await getNextId();
-  return Task.create({ id, ...task });
+  return Task.create({ id, ...data });
 };
 
-exports.getAllTasks = async () =>
-  Task.find({}, { _id: 0, __v: 0 });
+exports.getAllTasks = async (query) => {
+  const filter = {};
+  const sort = {};
 
-exports.getTaskById = async (id) =>
-  Task.findOne({ id: Number(id) }, { _id: 0, __v: 0 });
+  // Filter by completion status
+  if (query.completed !== undefined) {
+    filter.completed = query.completed === "true";
+  }
 
-exports.updateTask = async (id, task) => {
-  if (!isValid(task)) throw new Error("INVALID");
+  // Sorting by creation date
+  if (query.sort === "createdAt") {
+    sort.createdAt = query.order === "asc" ? 1 : -1;
+  }
+
+  return Task.find(filter, { _id: 0, __v: 0 }).sort(sort);
+};
+
+exports.getTaskById = async (id) => {
+  return Task.findOne({ id: Number(id) }, { _id: 0, __v: 0 });
+};
+
+exports.getTasksByPriority = async (priority) => {
+  return Task.find(
+    { priority },
+    { _id: 0, __v: 0 }
+  );
+};
+
+exports.updateTask = async (id, data) => {
+  if (!validateTask(data)) throw new Error("INVALID_INPUT");
+
   return Task.findOneAndUpdate(
     { id: Number(id) },
-    task,
+    data,
     { new: true, projection: { _id: 0, __v: 0 } }
   );
 };
 
 exports.deleteTask = async (id) => {
-  const res = await Task.findOneAndDelete({ id: Number(id) });
-  return !!res;
+  const result = await Task.findOneAndDelete({ id: Number(id) });
+  return !!result;
 };

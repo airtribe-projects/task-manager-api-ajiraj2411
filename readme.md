@@ -1,157 +1,239 @@
-# 📝 Task Manager API
+# 🚀 Task Manager API
 
-A robust RESTful API built with **Node.js 18**, **Express**, and **MongoDB**. This project emphasizes clean architecture, deterministic data handling, and full testability.
+A **Task Manager REST API** built using **Node.js 18**, **Express**, and **MongoDB**.
+This project provides **full CRUD operations**, strong **input validation**, **filtering**, **sorting**, and **priority-based task management**.
 
-This API is designed to be fully compatible with **TAP + Supertest** suites, ensuring reliable performance and predictable task management.
+🧪 The application is **fully tested** using **tap + supertest** with **51/51 tests passing**.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-* **Full CRUD Support**: Create, Read, Update, and Delete tasks seamlessly.
-* **Deterministic Task IDs**: Uses numeric IDs (1, 2, 3...) for predictable API consumption.
-* **Persistence**: Powered by MongoDB with Mongoose ODM.
-* **Automatic Seeding**: Ensures a consistent initial dataset on every startup.
-* **Race-Condition Protection**: Implements a startup readiness gate to block requests until the database and seeding are ready.
-* **Node.js 18 Optimized**: Built to leverage stable LTS features.
+* 📝 Create, read, update, and delete tasks
+* 🔢 Numeric task IDs (`1, 2, 3, ...`)
+* ✅ Input validation for create & update
+* 🚫 Proper error handling (`400` / `404`)
+* 🔍 Filter tasks by completion status
+* 📅 Sort tasks by creation date
+* 🚦 Task priority support (`low`, `medium`, `high`)
+* 🎯 Retrieve tasks by priority
+* 🌱 Automatic database seeding on startup
+* ⚡ Indexed queries for better performance
+* 🧩 Test-friendly architecture
+* 🟢 Node.js 18 compatible
 
 ---
 
 ## 🧱 Tech Stack
 
-| Technology | Purpose |
-| --- | --- |
-| **Node.js 18** | Runtime environment |
-| **Express** | Web framework |
-| **MongoDB** | NoSQL Database |
-| **Mongoose** | Object Data Modeling (ODM) |
-| **TAP** | Test runner for unit and integration tests |
-| **Supertest** | High-level abstraction for testing HTTP |
-| **Dotenv** | Environment variable management |
+* **Node.js 18**
+* **Express**
+* **MongoDB**
+* **Mongoose**
+* **tap** (test runner)
+* **supertest** (API testing)
+* **dotenv**
 
 ---
 
 ## 📂 Project Structure
 
-```text
+```
 task-manager-api/
+├── app.js                 # Express app (test-safe)
+├── server.js              # Server entry point
+├── db.js                  # MongoDB connection helper
+├── startup.js             # App startup & readiness gate
+├── seed.js                # Initial data seeding
 ├── models/
-│   └── task.model.js      # Task schema & Mongoose definition
+│   └── task.model.js      # Task schema + indexes
 ├── services/
-│   └── task.service.js    # Core business logic & DB interactions
+│   └── task.service.js    # Business logic
 ├── controllers/
-│   └── task.controller.js # Request/Response handling
+│   └── task.controller.js # Request handlers
 ├── routes/
-│   └── task.routes.js     # API route definitions
+│   └── task.routes.js     # API routes
+├── utils/
+│   └── validateTask.js    # Input validation
 ├── test/
-│   └── server.test.js     # TAP + Supertest integration tests
-├── app.js                 # Express app setup (exported for testing)
-├── server.js              # Entry point (server listener)
-├── db.js                  # MongoDB connection configuration
-├── startup.js             # DB + Seed synchronization logic
-├── seed.js                # Initial data population script
-├── .env                   # Configuration file
-└── package.json           # Scripts and dependencies
-
+│   └── server.test.js     # API tests (51 tests)
+├── .env
+├── package.json
+└── README.md
 ```
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚙️ Requirements
 
-### 1️⃣ Prerequisites
+* 🟢 Node.js **v18 or higher**
+* 🍃 MongoDB running locally
 
-Ensure you have **Node.js v18+** and **MongoDB** installed.
-
-```bash
-node -v # Should output v18.x.x
+Check Node version:
 
 ```
+node -v
+```
 
-### 2️⃣ Install Dependencies
+---
 
-```bash
+## 🛠️ Setup
+
+### 1️⃣ Install dependencies
+
+```
 npm install
-
 ```
 
-### 3️⃣ Environment Configuration
+### 2️⃣ Environment variables
 
 Create a `.env` file in the root directory:
 
-```env
+```
 PORT=3000
 MONGO_URI=mongodb://127.0.0.1:27017/task_manager
-
 ```
 
-### 4️⃣ Start MongoDB
+### 3️⃣ Start MongoDB
 
-If using Homebrew (macOS):
+Using Homebrew:
 
-```bash
+```
 brew services start mongodb-community
-
 ```
 
-Or run manually:
+Or manually:
 
-```bash
+```
 mongod
-
 ```
 
 ---
 
-## 🧪 Testing & Execution
+## 🧪 Running Tests
 
-### Running Tests
+Run the full automated test suite:
 
-The project uses **tap** and **supertest** to ensure API integrity.
-
-```bash
+```
 npm test
-
 ```
 
-**Expected Output:**
+### ✅ Expected Output
 
-> Asserts: 19 pass  0 fail
-> Suites:  1 pass  0 fail
+```
+Asserts: 51 pass  0 fail
+Suites:  1 pass  0 fail
+```
 
-### Start the Server
+---
 
-```bash
+## ▶️ Running the Application
+
+Start the API server:
+
+```
 npm start
-
 ```
 
-The server will be available at: `http://localhost:3000`
+Server will run at:
+
+```
+http://localhost:3000
+```
 
 ---
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/tasks` | Retrieve all tasks |
-| `GET` | `/tasks/:id` | Get a specific task by numeric ID |
-| `POST` | `/tasks` | Create a new task |
-| `PUT` | `/tasks/:id` | Update an existing task |
-| `DELETE` | `/tasks/:id` | Remove a task |
+### 📄 Get all tasks
+
+```
+GET /tasks
+```
+
+### 🔍 Filter by completion
+
+```
+GET /tasks?completed=true
+GET /tasks?completed=false
+```
+
+### 📅 Sort by creation date
+
+```
+GET /tasks?sort=createdAt&order=asc
+GET /tasks?sort=createdAt&order=desc
+```
+
+### 🎯 Get task by ID
+
+```
+GET /tasks/:id
+```
+
+### 🚦 Get tasks by priority
+
+```
+GET /tasks/priority/:level
+```
+
+(level = `low | medium | high`)
+
+### ➕ Create a task
+
+```
+POST /tasks
+```
+
+### ✏️ Update a task
+
+```
+PUT /tasks/:id
+```
+
+### ❌ Delete a task
+
+```
+DELETE /tasks/:id
+```
 
 ---
 
-## 🧠 Key Design Decisions
+## ✅ Validation Rules
 
-* **Numeric IDs with MongoDB**: To meet strict contract requirements, the API exposes numeric IDs. While MongoDB uses `_id` internally, a secondary `id` field is maintained and returned to the client.
-* **Startup Readiness Gate**: Using a "readiness" approach, the server won't accept traffic until the MongoDB connection is healthy and the seed data is confirmed. This is critical for CI/CD pipelines and automated testing.
-* **Deterministic Seeding**: `/tasks/1` is guaranteed to exist on startup, preventing "record not found" errors during initial test runs.
+* 📝 `title` must be a **non-empty string**
+* 📄 `description` must be a **non-empty string**
+* ✔ `completed` must be a **boolean**
+* 🚦 `priority` must be one of:
+
+  * `low`
+  * `medium`
+  * `high`
+
+### Error Handling
+
+* ❌ Invalid input → **400 Bad Request**
+* 🔍 Task not found → **404 Not Found**
 
 ---
 
-### ✅ Status
+## ⚡ Performance Optimizations
 
-* **Tests:** Passing
-* **Node Version:** 18.x
-* **Database:** MongoDB
+MongoDB indexes are added for:
+
+* `completed`
+* `priority`
+* `createdAt`
+
+This ensures fast filtering and sorting as the dataset grows.
+
+---
+
+## 📌 Status
+
+* ✅ All features implemented
+* 🧪 All tests passing (51/51)
+* 🟢 Node.js 18 compatible
+* 🍃 MongoDB backed
+---
+
