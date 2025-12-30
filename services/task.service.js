@@ -1,5 +1,5 @@
 const Task = require("../models/task.model");
-const validateTask = require("../utils/validateTask");
+const { validateTask, validatePartialTask } = require("../utils/validateTask");
 
 const getNextId = async () => {
   const last = await Task.findOne().sort({ id: -1 });
@@ -7,10 +7,24 @@ const getNextId = async () => {
 };
 
 exports.createTask = async (data) => {
-  if (!validateTask(data)) throw new Error("INVALID_INPUT");
+  if (!validateTask(data)) {
+    const err = new Error("Invalid input");
+    err.code = "INVALID_INPUT";
+    throw err;
+  }
 
-  const id = await getNextId();
-  return Task.create({ id, ...data });
+  try {
+    const id = await getNextId();
+    return await Task.create({ id, ...data });
+  } catch (error) {
+    // Future-safe: handle duplicate key errors if uniqueness is added
+    if (error.code === 11000) {
+      const err = new Error("Duplicate task");
+      err.code = "DUPLICATE";
+      throw err;
+    }
+    throw error; // unknown/internal error
+  }
 };
 
 exports.getAllTasks = async (query) => {
@@ -19,19 +33,40 @@ exports.getAllTasks = async (query) => {
 
   // Filter by completion status
   if (query.completed !== undefined) {
-    filter.completed = query.completed === "true";
+    if (query.completed === "true") {
+      filter.completed = true;
+    } else if (query.completed === "false") {
+      filter.completed = false;
+    } else {
+      const err = new Error("Invalid completed value");
+      err.code = "INVALID_INPUT";
+      throw err;
+    }
   }
 
   // Sorting by creation date
   if (query.sort === "createdAt") {
-    sort.createdAt = query.order === "asc" ? 1 : -1;
+    if (query.order === undefined) {
+      sort.createdAt = -1; // default: newest first
+    } else if (query.order === "asc") {
+      sort.createdAt = 1;
+    } else if (query.order === "desc") {
+      sort.createdAt = -1;
+    } else {
+      const err = new Error("Invalid order value");
+      err.code = "INVALID_INPUT";
+      throw err;
+    }
   }
 
   return Task.find(filter, { _id: 0, __v: 0 }).sort(sort);
 };
 
 exports.getTaskById = async (id) => {
-  return Task.findOne({ id: Number(id) }, { _id: 0, __v: 0 });
+  const numId = Number(id);
+  if (Number.isNaN(numId)) return null;
+
+  return Task.findOne({ id: numId }, { _id: 0, __v: 0 });
 };
 
 exports.getTasksByPriority = async (priority) => {
@@ -42,13 +77,27 @@ exports.getTasksByPriority = async (priority) => {
 };
 
 exports.updateTask = async (id, data) => {
-  if (!validateTask(data)) throw new Error("INVALID_INPUT");
+  // Input validation
+  if (!validatePartialTask(data)) {
+    const err = new Error("Invalid input");
+    err.code = "INVALID_INPUT";
+    throw err;
+  }
 
-  return Task.findOneAndUpdate(
+  const updatedTask = await Task.findOneAndUpdate(
     { id: Number(id) },
     data,
     { new: true, projection: { _id: 0, __v: 0 } }
   );
+
+  // Task not found
+  if (!updatedTask) {
+    const err = new Error("Task not found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+
+  return updatedTask;
 };
 
 exports.deleteTask = async (id) => {

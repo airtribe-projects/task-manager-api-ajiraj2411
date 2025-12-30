@@ -16,7 +16,7 @@ const TaskSchema = new mongoose.Schema(
     },
     completed: {
       type: Boolean,
-      required: true
+      default: false
     },
     priority: {
       type: String,
@@ -28,18 +28,5 @@ const TaskSchema = new mongoose.Schema(
     timestamps: true
   }
 );
-
-/**
- * Indexes for faster querying
- */
-
-// Filter by completion status
-TaskSchema.index({ completed: 1 });
-
-// Filter by priority
-TaskSchema.index({ priority: 1 });
-
-// Sort by creation date
-TaskSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Task", TaskSchema);

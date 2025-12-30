@@ -8,12 +8,33 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔒 BLOCK REQUESTS UNTIL DB + SEED IS DONE
+/**
+ * Initialize database and seed data.
+ * In test mode, reset the database ONCE at startup.
+ */
+const isTest = process.env.NODE_ENV === "test";
+
+const ready = (async () => {
+  try {
+    if (isTest) {
+      await init({ reset: true });
+    } else {
+      await init();
+    }
+  } catch (err) {
+    console.error("App initialization failed:", err.message);
+    throw err;
+  }
+})();
+
+/**
+ * Block all incoming requests until initialization completes
+ */
 app.use(async (req, res, next) => {
   try {
-    await init();
+    await ready;
     next();
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "App not ready" });
   }
 });
